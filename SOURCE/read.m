@@ -37,8 +37,8 @@ switch ext
         data_temp = cell2mat(data_temp);
         head = sum(isnan(data_temp),1);
         data = data_temp(head+1:end,:);
-        d = size(data,1)/2;
-     	data_u = data(1:d,:);
+        d = floor(size(data,1)/2); %!
+	data_u = data(1:d,:);
      	data_l = data(d+1:end,:);
      
     case 'pol'

@@ -5,6 +5,7 @@
 main="xopt"
 sourceDir="SOURCE"
 fileObj="fobj"
+fileConfGen="genetic"
 data=`find ./ -maxdepth 1 -type d -name "GEN"`
 tesT=`find ./ -maxdepth 1 -type d -name "TEST"`
 fileGen=$(find ./ -maxdepth 1 -type f -name "*.gen")
@@ -55,14 +56,14 @@ case $1 in
 	rm -f -r ${data} *.out
 #	rm -f -i -r ${data}	
 	;;
-"zip" | "x")
+"zip" | "z")
 	if [ -z ${tesT} ];then
 		tesT="TEST"
 		mkdir ${tesT}		
 	fi
 	
 #	cp ${main}.m ${data}/${main}$2.m 
-	tar cvfz $2.tar.gz `basename ${data}` ${main}.m ${sourceDir}/${fileObj}.m *.out *.pdf 
+	tar cvfz $2.tar.gz `basename ${data}` ${main}.m ${sourceDir}/${fileObj}.m ${sourceDir}/${fileConfGen}.m *.out *.pdf 2> /dev/null 
 	mv $2.tar.gz ${tesT}/
 	;;
 *)

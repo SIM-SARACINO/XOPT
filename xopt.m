@@ -1,6 +1,6 @@
 function xopt % set input-output data to use in combination with other programs
 %%*******************************************************************
-%   XOPT v.1.2.0_SGA(s)
+%   XOPT v.1.2.0
 %                              input  >>> xopt
 %                                      /   |   \
 %                                     |    |    |
@@ -14,11 +14,9 @@ function xopt % set input-output data to use in combination with other programs
 %
 %   STRUCTURE   :
 %   
-%   - xopt.m.....: served as the main airfoil design routine. 
-%     It called the appropriate functions to set up the optimization 
-%     problem, called the optimizer, processed the results, and saved
-%     results to text files (gen%*k%**.xy .cp .pol .run .log, %*.gen,
-%     "stats.out", "bsa.out").
+%   - xopt.m.....: it's the main airfoil design routine that call the 
+%     appropriate functions to set up the optimization problem, call 
+%     the optimizer, and export data to text files.
 %   - run.m........:
 %   - genetic.m....:
 %   - goptions.m...:
@@ -58,8 +56,7 @@ fprintf(['UNIVERSITY of ROMA TRE',...
 
 %% Include XOPT in matlab directory path
 %  *************************************
-addpath('SOURCE') % trouble with MCC compiler ! 
-                   % Fill in manually in the workspace
+addpath('SOURCE') 
 
 %% Set global variables
 %  ********************
@@ -86,7 +83,7 @@ fprintf('Parametric model = %s\n',pm)
 %% Mach range 
 %  **********
 mis = 'LowSubsonic'; % Low-Subsonic aerodynamic application 
-sprintf('\nMission = %s\n',mis)
+fprintf('\nMission = %s\n',mis)
 
 %% Viscous-Inviscid analysis
 %  *************************
@@ -133,8 +130,8 @@ fprintf(['\nInitialize normalized coordinates of starting airfoil\n',...
 %            selection is reasonable for both upper and lower surfaces
 % =====================================================================
 
-Pu = [ 0.20,0.15 ; 0.50,0.10; 0.70,0.05 ]
-Pl = [ 0.20,-0.10 ; 0.50,-0.08; 0.70,-0.02 ]
+Pu = [ 0.00932  0.01214 ; 0.21624  0.05810 ; 0.64723  0.04612 ; 0.95248  0.00865 ]
+Pl = [ 0.94748  0.00101 ; 0.66244 -0.01366 ; 0.30221 -0.02762 ; 0.02670 -0.01436 ]
 
 % ==========================================================================================
 % Link
@@ -149,13 +146,14 @@ nu = size(Pu,1);
 nl = size(Pl,1);
 
 fprintf(['\nInitialize airfoil configuration parameters\n',...
-         ' X0 = [Ru,Rl,bu,bl,[Pu],[Pl],dzu,dzl\n',... 
+         ' X0 = [Ru,Rl,bu,bl,[Pu],[Pl],dzu,dzl]\n',... 
          ' Ru, Rl	: normalized leading edge radius of curvature\n',... 
          ' bu, bl	: boat-tail angle (rad)\n',...
          ' Pu, Pl	: normalized coordinate matrix\n',...
          ' dzu,dzl	: normalized trailing edge thickness\n'])
 
-X0 = [0.10,0.10,pi/10,pi/12,Pu(:,1)',Pu(:,2)',Pl(:,1)',Pl(:,2)',0.005,-0.005]
+X0 = [ 0.00495,0.00495,0.089,0.0,Pu(:,1)',Pu(:,2)',Pl(:,1)',Pl(:,2)',0.001,-0.001 ]
+%% Use small dz instead of zero thickness ! 
 
 fprintf(['\nInitialize upper and lower bounds\n',...
          ' UB_u  : upper bound-upper surface points ;\n',...
@@ -164,15 +162,23 @@ fprintf(['\nInitialize upper and lower bounds\n',...
          ' LB_l  : lower bound-lower ... ;\n',...
          ' UB    : upper bound (all parameters) ;\n',...
          ' LB    : lower bound (all parameters)\n'])
-         
-UB_u = [ 0.25,0.15 ; 0.55,0.15 ; 0.75,0.10 ];
-LB_u = [ 0.15,0.05 ; 0.45,0.05 ; 0.65,0.02 ];
 
-UB_l = [ 0.25,-0.05 ; 0.55,-0.04 ; 0.75,-0.01 ];
-LB_l = [ 0.15,-0.10 ; 0.45,-0.08 ; 0.65,-0.02 ];
+%% Extended entry data example for upper and lower coordinate bounds         
+%UB_u = [ 0.25,0.15 ; 0.55,0.15 ; 0.75,0.10 ];
+%LB_u = [ 0.15,0.05 ; 0.45,0.05 ; 0.65,0.02 ];
 
-UB = [ 0.10,0.10,pi/8,pi/10,UB_u(:,1)',UB_u(:,2)',UB_l(:,1)',UB_l(:,2)',0.005,-0.004 ]
-LB = [ 0.06,0.06,pi/12,-pi/10,LB_u(:,1)',LB_u(:,2)',LB_l(:,1)',LB_l(:,2)',0.004,-0.005 ]
+%UB_l = [ 0.25,-0.05 ; 0.55,-0.04 ; 0.75,-0.01 ];
+%LB_l = [ 0.15,-0.10 ; 0.45,-0.08 ; 0.65,-0.02 ];
+
+%% +-10% 
+UB_u = Pu+Pu.*0.1;
+LB_u = Pu-Pu.*0.1;
+
+UB_l = Pl+abs(Pl.*0.3);
+LB_l = Pl-abs(Pl.*0.3);
+
+UB = [ 0.008,0.008,0.15,0.02,UB_u(:,1)',UB_u(:,2)',UB_l(:,1)',UB_l(:,2)',0.0015,-0.0005 ]
+LB = [ 0.004,0.004,0.0,-0.10,LB_u(:,1)',LB_u(:,2)',LB_l(:,1)',LB_l(:,2)',0.0005,-0.0015 ]
 
 fprintf(['\nInitialize physical parameters of the flux\n',...
          'dry air\n',...  
@@ -229,8 +235,8 @@ cpmin = -10.0
 %  **************
 switch opt
     case {'sga'}
-        fprintf('\n...launch %s configuration...\n',opt)        
-        [Xbest,fbest,stats,nfit,fgen,lgen,lfit] = genetic(@run,opt,X0,LB,UB);
+        fprintf('\nlaunch %s configuration...\n',opt)        
+        [Xbest,fbest,stats,nfit,fgen,lgen,lfit] = genetic(@run,opt,X0,LB,UB,nu,nl);
         
         
     case {'active-set','sqp','trust-region-reflective','trust-region-dogleg',...

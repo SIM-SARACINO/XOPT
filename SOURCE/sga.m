@@ -145,7 +145,7 @@ temp_mat = [vlb; vub; x0];
 ENCODED = any(any((temp_mat ~= 0) & (temp_mat ~= 1))) |...
     ~isempty(bits);
 if ENCODED,
-    sprintf('Encode x0 -> fgen...\n')
+    fprintf('Encode x0 -> fgen...\n')
     [fgen,lchrom] = encode(x0,vlb,vub,bits);
 else
     fgen = x0;
@@ -174,16 +174,18 @@ if ENCODED,
     fgen = decode(fgen,vlb,vub,bits);
 end
 
-sprintf('Run main loop...')
+fprintf('Run main loop...')
 %% Output stats table
 %stats = []; % dynamical allocation !
 stats = zeros(max_gen,4);
+
 if PRINTING >= 1
 fprintf(['                    fit statistics                     \n',...
          '-------------------------------------------------------\n',...
          '|  Gen  |    Minimum    |     Mean     |    Maximum   |\n',...
          '-------------------------------------------------------\n'])
-end     
+end
+     
 %% Optimize
 %  ********
 
@@ -191,8 +193,10 @@ end
 mkdir('GEN');
 
 % fit, BSA history
-BSA_out = {};
-fit_out = {};
+%BSA_out = {};
+%fit_out = {};
+BSA_out = zeros(max_gen,2); BSA_out(1,:) = [0 0];
+fit_out = zeros(max_gen*size(pop_size,1),2);
 
 for gen = 1:max_gen,
     old_gen = new_gen;
@@ -218,7 +222,8 @@ for gen = 1:max_gen,
     ix0 = 1+pop_size*(gen-1);
     ix1 = pop_size+pop_size*(gen-1);
     ind = (ix0:ix1)';
-    fit_out{gen} = {ind, fit'};
+    %fit_out{gen} = {ind, fit'};
+    fit_out(ix0:ix1,:) = [ind fit']; 
     
     % Store minimum fit value from previous gen (except for
     % initial gen)
@@ -313,8 +318,9 @@ for gen = 1:max_gen,
                         lgen = old_gen;
                     end
                     
-                    fit_out=cellfun(@cell2mat,fit_out,'UniformOutput',false);
-                    fit_out=cell2mat(fit_out);
+                    %fit_out=cellfun(@cell2mat,fit_out,'UniformOutput',false);
+                    %fit_out=cell2mat(fit_out);
+	            fit_out = fit_out(1:gen*pop_size,:);
                     stats = stats(1:gen,:);
                     
                     save('FIT.out','fit_out','-ascii')
@@ -336,8 +342,9 @@ for gen = 1:max_gen,
                         lgen = old_gen;
                     end
                     
-                    fit_out=cellfun(@cell2mat,fit_out,'UniformOutput',false);
-                    fit_out=cell2mat(fit_out);
+                    %fit_out=cellfun(@cell2mat,fit_out,'UniformOutput',false);
+                    %fit_out=cell2mat(fit_out);
+		    fit_out = fit_out(1:gen*pop_size,:);
                     stats = stats(1:gen,:);
                     
                     save('FIT.out','fit_out','-ascii')
@@ -367,8 +374,9 @@ for gen = 1:max_gen,
                     lgen = old_gen;
                 end
                 
-                fit_out=cellfun(@cell2mat,fit_out,'UniformOutput',false);
-                fit_out=cell2mat(fit_out);
+                %fit_out=cellfun(@cell2mat,fit_out,'UniformOutput',false);
+                %fit_out=cell2mat(fit_out);
+		fit_out = fit_out(1:gen*pop_size,:);
                 stats = stats(1:gen,:);
                 
                 save('FIT.out','fit_out','-ascii')
@@ -382,7 +390,8 @@ for gen = 1:max_gen,
         if gen > 1
             bitlocavg = mean(old_gen,1);
             BSA_pop = 2 * mean(abs(bitlocavg - 0.5));
-            BSA_out{gen-1} = {gen BSA_pop};
+            %BSA_out{gen-1} = {gen BSA_pop};
+	    BSA_out(gen,:) = [gen-1 BSA_pop];
             if BSA_pop >= BSA,
                 if PRINTING >=1
                     fprintf('\n')
@@ -394,11 +403,13 @@ for gen = 1:max_gen,
                 else
                     lgen = old_gen;
                 end
-                
-                BSA_out = cellfun(@cell2mat,BSA_out,'UniformOutput',false);
-                BSA_out = cell2mat(BSA_out);
-                fit_out = cellfun(@cell2mat,fit_out,'UniformOutput',false);
-                fit_out = cell2mat(fit_out);
+                 
+                %BSA_out = cellfun(@cell2mat,BSA_out,'UniformOutput',false);
+                %BSA_out = cell2mat(BSA_out);
+		BSA_out = BSA_out(1:gen,:);
+                %fit_out = cellfun(@cell2mat,fit_out,'UniformOutput',false);
+                %fit_out = cell2mat(fit_out);
+		fit_out = fit_out(1:gen*pop_size,:);
                 stats = stats(1:gen,:);
                 
                 save('BSA.out','BSA_out','-ascii')
@@ -437,15 +448,16 @@ end % for max_gen
 lfit = fit;
 
 if BSA > 0 % print BSA history
-     BSA_out = cellfun(@cell2mat,BSA_out,'UniformOutput',false);
-     BSA_out = cell2mat(BSA_out);
+     %BSA_out = cellfun(@cell2mat,BSA_out,'UniformOutput',false);
+     %BSA_out = cell2mat(BSA_out);
+     BSA_out = BSA_out(1:gen,:);
      save('BSA.out','BSA_out','-ascii')
 end
 
-fit_out=cellfun(@cell2mat,fit_out,'UniformOutput',false);
-fit_out=cell2mat(fit_out);
+%fit_out=cellfun(@cell2mat,fit_out,'UniformOutput',false);
+%fit_out=cell2mat(fit_out);
 
-save('FIT.out','fit_out','-ascii') % print fit hystory
+save('FIT.out','fit_out','-ascii') % print fit history
 save('STATs.out','stats','-ascii') % print stats history
 
 if PRINTING >= 1,

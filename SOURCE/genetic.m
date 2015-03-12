@@ -7,7 +7,12 @@ function [Xbest,fbest,stats,nfit,fgen,lgen,lfit] = genetic(fObj,alg,X0,LB,UB,var
 % OUTPUT :
 %********************************************************************
 
-%% varargin not defined
+if nargin > 5
+	var_opt = cell2mat(varargin);
+	nu = var_opt(1);
+	nl = var_opt(2);
+	%...	
+end
 
 fprintf(['\n[Initialize genetic algorithm \n',...
         '  N_pop : number of chromosomes ;\n',...
@@ -18,10 +23,10 @@ fprintf(['\n[Initialize genetic algorithm \n',...
 %          The option list below is not complete so we suggest you to see "goptions.m"  and  "genetic.m"
 %          in ~/.../XOPT/SourceCode for more detailed information.
 
-N_pop = 4
+N_pop = 30
 P_cross = 0.5
 P_mut = 0.03
-Maxgen = 2
+Maxgen = 50
 elite = 1
 
 fprintf(['\nInitialize bit-number for every configuration variables\n',...
@@ -30,9 +35,14 @@ fprintf(['\nInitialize bit-number for every configuration variables\n',...
         '  bits		:  bit string (all parameters)\n'])
 %          Note that the space dimension of the i-th variable is equal to 2^i 
 
-bits_u = [ 8,8 ; 8,8 ; 8,8 ];
-bits_l = [ 8,8 ; 8,8 ; 8,8 ];
-bits = [ 6,6,4,4,bits_u(:,1)',bits_u(:,2)',bits_l(:,1)',bits_l(:,2)',4,4 ]
+%% extended form data representation
+%bits_u = [ 8,8 ; 8,8 ; 8,8 ];
+%bits_l = [ 8,8 ; 8,8 ; 8,8 ];
+
+bits_u = ones(nu,2).*6;
+bits_l = ones(nl,2).*6;
+
+bits = [ 3,3,3,3,bits_u(:,1)',bits_u(:,2)',bits_l(:,1)',bits_l(:,2)',2,2 ]
 
 % =============================================================================================================
 % Remark
@@ -44,6 +54,7 @@ bits = [ 6,6,4,4,bits_u(:,1)',bits_u(:,2)',bits_l(:,1)',bits_l(:,2)',4,4 ]
 %  ============================================================================================================
 
 fprintf('\nBuild options...\n')
+%% '0' turn on the default values for the genetic algorithm (see goptions)
 options = goptions([1,0.9,0,0,elite,0,0,0,0,0,N_pop,P_cross,P_mut,Maxgen])
 %options=[1,0.9,0,0,elite,0,0,0,0,0,N_pop,P_cross,P_mut,Maxgen];
 
@@ -62,4 +73,4 @@ switch alg
 end
 
 tcomp=toc(tstart); % stop the clock
-fprintf('\n tcomp = %.3f\n',tcomp)
+fprintf('\n tcomp = %.3f min\n',tcomp/60)
