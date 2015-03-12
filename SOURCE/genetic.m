@@ -35,12 +35,14 @@ fprintf(['\nInitialize bit-number for every configuration variables\n',...
         '  bits		:  bit string (all parameters)\n'])
 %          Note that the space dimension of the i-th variable is equal to 2^i 
 
-%% extended form data representation
+%% extended form representation
 %bits_u = [ 8,8 ; 8,8 ; 8,8 ];
 %bits_l = [ 8,8 ; 8,8 ; 8,8 ];
 
-bits_u = ones(nu,2).*6;
-bits_l = ones(nl,2).*6;
+%% alternative form
+bxP = 6;
+bits_u = ones(nu,2).*bxP; % '6' is the "bit x point" value i got to represent the entire set of points
+bits_l = ones(nl,2).*bxP;  							
 
 bits = [ 3,3,3,3,bits_u(:,1)',bits_u(:,2)',bits_l(:,1)',bits_l(:,2)',2,2 ]
 

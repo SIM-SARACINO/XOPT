@@ -47,12 +47,12 @@ fprintf(['***************************\n',...
          ' Airfoil Optimization Tool \n',...
          '***************************\n'])
 
-fprintf(['UNIVERSITY of ROMA TRE',...
+fprintf(['UNIVERSITY of ROMA TRE\n',...
          'Department of Mechanical and Industrial Engineering\n',...
-         'Supervisors : ','Umberto Iemma.         (Associate Professor)\n',...
+         'Supervisors :    Umberto Iemma.         (Associate Professor)\n',...
          '                 Lorenzo Burghignoli.   (Researcher)\n',...
          '                 Francesco Centracchio. (Researcher)\n',... 
-         'Author: ','Simone Saracino\n\n']) 
+         'Author:  Simone Saracino\n\n']) 
 
 %% Include XOPT in matlab directory path
 %  *************************************
@@ -102,9 +102,9 @@ fprintf('Optimizer algorithm  = %s\n',opt)
 
 %% Distributed computation service
 %  *******************************
-
 par = 0; % 0 not available
          % 1 available
+
 fprintf('Distributed workstation or cluster  = %s\n',par)
 
 %% Start configuration
@@ -212,7 +212,7 @@ N2 = 1.0
 if c == 1
 Re = 0.5E06
 U = Re*ni*c^(-1);
-else
+else    % see XFoil handbook
 	Rec = Re*c
 	Re = Rec;
 	U = Re*ni*c^(-1);
