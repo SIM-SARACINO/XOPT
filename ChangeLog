@@ -1,0 +1,8 @@
+1.2.0
+ - Second revision of XOPT project. The first octave package of the main program is being fixed 
+ - Engined in matlab environment for unix platform
+ - Added a simple genetic algorithm (see README ad SOURCE-files documentation)
+ - Added gradient-based algorithms using matlab "fmincon" (experimental)
+ - Added post-processing and file management tools -> "system.sh", "plot.sh"
+ - Added documented airfoil DATABASE
+ - Shared on github
