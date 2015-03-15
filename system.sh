@@ -53,7 +53,7 @@ case $1 in
 	done
 	;;
 "distclean" | "dc")
-	rm -f -r ${data} *.out
+	rm -f -r ${data} *.out log *.pol *.cp
 #	rm -f -i -r ${data}	
 	;;
 "zip" | "z")
@@ -63,7 +63,7 @@ case $1 in
 	fi
 	
 #	cp ${main}.m ${data}/${main}$2.m 
-	tar cvfz $2.tar.gz `basename ${data}` ${main}.m ${sourceDir}/${fileObj}.m ${sourceDir}/${fileConfGen}.m *.out *.pdf 2> /dev/null 
+	tar cvfz $2.tar.gz `basename ${data}` ${main}.m ${sourceDir}/${fileObj}.m ${sourceDir}/${fileConfGen}.m *.out #2> /dev/null 
 	mv $2.tar.gz ${tesT}/
 	;;
 *)

@@ -1,5 +1,5 @@
 function xopt % set input-output data to use in combination with other programs
-%%*******************************************************************
+%%****************************************************************************
 %   XOPT v.1.2.0
 %                              input  >>> xopt
 %                                      /   |   \
@@ -10,7 +10,13 @@ function xopt % set input-output data to use in combination with other programs
 %                                         
 %   DESCRIPTION :
 %
-%   XOPT is an optimization code which has..    
+%   XOPT is an optimization code which embodies the power of genetic
+%   algorithms and gradient-based methods to find optimal efficiency
+%   of wing sections in subsonic conditions.
+%   (Remark: gradient-based approach is only experimental; hybrid
+%   schemes will be available in XOPT v.1.3.0.)
+%
+%   See README in DOC and the SOURCE documentation 
 %
 %   STRUCTURE   :
 %   
@@ -27,9 +33,16 @@ function xopt % set input-output data to use in combination with other programs
 %   - fobj.m.......:
 %   - fconNL.m.....:
 %
-%%*******************************************************************
+%   Draft
+%   The configuration file here and the genetic one in genetic.m ,  	
+%   represent only a 'bit taste' of the dimension and the complexity of the 
+%   entire optimization process.    	
+%   
+%   Contact the Author for any comment, suggestion and issue.
+%   Now You can find us on GitHub at https://github.com/SIM-SARACINO/XOPT 
+%%****************************************************************************
 
-clc															
+clc
 clear all
 close all
 
@@ -98,14 +111,15 @@ fprintf('Fluid solver = %s\n',solv)
 %% Optimizer
 %  *********
 opt = 'sga';
+% INPUT METHOD :............'sga'
+% EXPERIMENTAL METHODs :....'sqp' , 'active-set' , 'interior-point'
 fprintf('Optimizer algorithm  = %s\n',opt)
 
 %% Distributed computation service
 %  *******************************
-par = 0; % 0 not available
-         % 1 available
-
-fprintf('Distributed workstation or cluster  = %s\n',par)
+par = 'work'; % 0 not available
+              % 1 available
+fprintf('Workstation or cluster  = %s\n',par)
 
 %% Start configuration
 %  *******************
@@ -130,8 +144,8 @@ fprintf(['\nInitialize normalized coordinates of starting airfoil\n',...
 %            selection is reasonable for both upper and lower surfaces
 % =====================================================================
 
-Pu = [ 0.00932  0.01214 ; 0.21624  0.05810 ; 0.64723  0.04612 ; 0.95248  0.00865 ]
-Pl = [ 0.94748  0.00101 ; 0.66244 -0.01366 ; 0.30221 -0.02762 ; 0.02670 -0.01436 ]
+Pu = [ 0.75000 0.06642 ; 0.50000 0.10538 ; 0.25000 0.10903 ; 0.10332 0.07970 ]
+Pl = [ 0.10332 -0.03991 ; 0.25000 -0.03974 ; 0.50000 -0.02713 ; 0.75000 -0.01277 ]
 
 % ==========================================================================================
 % Link
@@ -152,7 +166,7 @@ fprintf(['\nInitialize airfoil configuration parameters\n',...
          ' Pu, Pl	: normalized coordinate matrix\n',...
          ' dzu,dzl	: normalized trailing edge thickness\n'])
 
-X0 = [ 0.00495,0.00495,0.089,0.0,Pu(:,1)',Pu(:,2)',Pl(:,1)',Pl(:,2)',0.001,-0.001 ]
+X0 = [ 0.02472,0.02472,19*pi/180,0.0,Pu(:,1)',Pu(:,2)',Pl(:,1)',Pl(:,2)',0.001,-0.001 ]
 %% Use small dz instead of zero thickness ! 
 
 fprintf(['\nInitialize upper and lower bounds\n',...
@@ -170,15 +184,16 @@ fprintf(['\nInitialize upper and lower bounds\n',...
 %UB_l = [ 0.25,-0.05 ; 0.55,-0.04 ; 0.75,-0.01 ];
 %LB_l = [ 0.15,-0.10 ; 0.45,-0.08 ; 0.65,-0.02 ];
 
-%% +-10% 
-UB_u = Pu+Pu.*0.1;
-LB_u = Pu-Pu.*0.1;
+%% +- 15% 
+varP = 0.15;
+UB_u = Pu+Pu.*varP;
+LB_u = Pu-Pu.*varP;
 
-UB_l = Pl+abs(Pl.*0.3);
-LB_l = Pl-abs(Pl.*0.3);
+UB_l = Pl+abs(Pl.*varP);
+LB_l = Pl-abs(Pl.*varP);
 
-UB = [ 0.008,0.008,0.15,0.02,UB_u(:,1)',UB_u(:,2)',UB_l(:,1)',UB_l(:,2)',0.0015,-0.0005 ]
-LB = [ 0.004,0.004,0.0,-0.10,LB_u(:,1)',LB_u(:,2)',LB_l(:,1)',LB_l(:,2)',0.0005,-0.0015 ]
+UB = [ 0.030,0.030,25*pi/180,2.0,UB_u(:,1)',UB_u(:,2)',UB_l(:,1)',UB_l(:,2)',0.0015,-0.0005 ]
+LB = [ 0.015,0.015,5*pi/180,-5*pi/180,LB_u(:,1)',LB_u(:,2)',LB_l(:,1)',LB_l(:,2)',0.0005,-0.0015 ]
 
 fprintf(['\nInitialize physical parameters of the flux\n',...
          'dry air\n',...  
@@ -205,7 +220,16 @@ fprintf(['\nInitialize XFoil parameters\n',...
          ' max_iter_xfoil    : maximum number of viscous iteration* ;\n',...
          ' cpmin             : minimum value of cp axis \n'])
      
-N = 100
+N = 80  % Sometimes the starting configuration could be too 'coarse',
+	% even though a great number of panel nodes ('80-100' panels), 
+	% so the standard procedure provide a second discretization of the 
+	% wing section with '160' panels. One could set this value in the xfoil 
+	% default file (*.def). We provide you a template file in 'DEF' folder 
+	% so it will be simple for you to make a change : infact the 'Npane' component
+	% of the array, is just the first. 
+	% Now, you make Xfoil read the default file moving that in the workspace
+	% ~/../XOPT/ and turning on 'def' parameter (see SOURCE/run.m).
+
 N1 = 0.5
 N2 = 1.0
 
@@ -236,14 +260,50 @@ cpmin = -10.0
 switch opt
     case {'sga'}
         fprintf('\nlaunch %s configuration...\n',opt)        
-        [Xbest,fbest,stats,nfit,fgen,lgen,lfit] = genetic(@run,opt,X0,LB,UB,nu,nl);
+        [Xbest,fbest,gen_best,k_best,stats,nfit,fgen,lgen,lfit] = genetic(@run,opt,X0,LB,UB,nu,nl);
         
         
     case {'active-set','sqp','trust-region-reflective','trust-region-dogleg',...
-            'interior-point','interior-point-convex','levenberg-marquardt','lm-line-search'} % new !
+            'interior-point','interior-point-convex','levenberg-marquardt','lm-line-search'} % experimental !
         
-        fprintf('\n...launch %s configuration...\n',opt)
-        [Xbest,fbest,exitflag,output] = gb(@run,opt,X0,LB,UB);
+        fprintf('\nlaunch %s configuration...\n',opt)
+	fprintf('\nBuild options...\n')
+
+	options = [];
+	options = optimset('Algorithm',opt,'Display','iter','MaxFunEvals',1500,...
+                    'LargeScale','off','MaxIter',1500,'TolFun',1E-6,'TolCon', 1E-6);
+
+	fconP_flag = 1; % turn on the penalty function approach
+	
+	%% linear constraints Aeqx = beq, Ax < b
+	A = []; b = [];
+	Aeq = []; beq = [];
+
+	%% not linear constraints ceq(x) = 0, c(x) < 0	
+	c = [];
+	ceq = [];
+	%% define a function to evaluate the constraint 
+	
+	mkdir('X');
+	cod1 = 0; cod2 = 0;
+
+	fid1=fopen('history.dat', 'w');
+		fprintf(fid1,['\n\t','XOPT v.1.2.0\n\n',...
+                	      '\t\tDatabase\n\n',...
+		              'Re %.3e\tMach %.2f\tAlpha %.3f\t%s\n\n',...
+		              'x0\t\t Cl\t\tCd\t\tCm\t\tE\t      fitness\n',...
+		              '--\t     ----------\t    ----------\t    ----------\t    ----------\t    ----------\n'],...
+                               Re,Ma,alpha,mod);
+		fclose(fid1);
+
+	%% Solve
+	fprintf('call %s...\n',opt)
+    	tstart = tic; % start the clock
+    	
+    	[Xbest,fbest,exitflag,output] = fmincon(@(x) runGB(x,cod1,cod2),X0,A,b,Aeq,beq,LB,UB,[c ceq],options) 
+
+    	tcomp=toc(tstart); % stop the clock
+    	fprintf('\n tcomp = %.3f\n',tcomp/60)	
         
     case {'testGEN','testGB'} % 'testGEN' and 'testGB' integrated routines in next release !
         fprintf('\n%s...launch test ...\n',opt)

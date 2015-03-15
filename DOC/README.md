@@ -1,4 +1,4 @@
-
+						VERSIONE NON AGGIORNATA !
 XOPT v.1.2.0
 Airfoil Optimization Tool  
 

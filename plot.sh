@@ -53,6 +53,7 @@ if [ "${narg}" -eq  5 ];then
 	set y2range [$3:$4] reverse
 	set key box top right opaque width ${width}
 	set grid
+	#set size ratio -1 
 	pl '$x0' w l lt 7 t "g${gen}k$k" axes x1y1,\
 '$Cp' every ::1::$5/2 w l lt 1 t "Cp_g${gen}k${k}_u" axes x1y2,''\
  every ::$5/2::$5 w l lt 3 t "Cp_g${gen}k${k}_u" axes x1y2

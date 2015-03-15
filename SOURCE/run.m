@@ -42,7 +42,7 @@ end
 switch solv 
     case 'xfoil'
     
-    def = 0; % .def file not available in work space (enter '1' to get xfoil read '.def'
+    def = 0; % .def file not available in work space (enter '1' to get xfoil read '.def'       !!
              % in current work space)
     [cp,cp_u,cp_l,pol] = xfoil(mod,Re,Ma,alpha,file,[tag1 tag2],def,max_iter_xfoil,cpmin);
 

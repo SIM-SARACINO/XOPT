@@ -1,4 +1,4 @@
-function [Xbest,fbest,exitflag,output] = gb(fobj,alg,X0,LB,UB,varargin)
+function [Xbest,fbest,exitflag,output] = gb(fObj,alg,X0,LB,UB,varargin)
 %********************************************************************
 % Funcion which demand tasks to parametric engine, solver and compute
 % fitness
@@ -11,7 +11,7 @@ function [Xbest,fbest,exitflag,output] = gb(fobj,alg,X0,LB,UB,varargin)
 
 %% Optimizer options
 %  *****************
-sprintf('\nBuild options...\n')
+fprintf('\nBuild options...\n')
 
 options = [];
 
@@ -22,21 +22,23 @@ options = [];
 options = optimset('Algorithm',alg,'Display','iter','MaxFunEvals',50000,...
                     'LargeScale','off','MaxIter',2500,'TolFun',1E-6,'TolCon', 1E-6);
 
-fconP_flag = 1; % define a flag to activate (1) or disable (0) penalty functions. 
-                % Instead of penalty functions one may set linear and
-                % not-linear constraints in other way (see documetation of "fmincon.m"). 
-                % Default value is 1.
+if nargin < 6
+	fconP_flag = 1; % define a flag to activate (1) or disable (0) penalty functions. 
+                	% Instead of penalty functions one may set linear and
+                	% not-linear constraints in other way (see documetation of "fmincon.m"). 
+                	% Default value is 1.
+end
                 
 if fconP_flag
     
     %% Solve
-    sprintf('call %s...\n',alg)
+    fprintf('call %s...\n',alg)
     tstart = tic; % start the clock
-
-    [Xbest,fbest,exitflag,output] = fmincon(fobj,X0,[],[],[],[],[],[],[],options); % run matlab "fmincon.m"
+    
+    [Xbest,fbest,exitflag,output] = fmincon(fObj,X0,[],[],[],[],LB,UB,[],[],options); 
 
     tcomp=toc(tstart); % stop the clock
-    sprintf('\n tcomp = %.3f\n',tcomp)
+    fprintf('\n tcomp = %.3f\n',tcomp/60)
     
 else 
     %% Define linear-not linear constraints
@@ -50,11 +52,11 @@ else
     %% ! define a function to compute not linear constraints instead
     
     %% Solve
-    sprintf('call %s...\n',alg)
+    fprintf('call %s...\n',alg)
     tstart = tic; % start the clock
 
-    [Xbest,fbest,exitflag,output] = fmincon(fobj,X0,A,b,Aeq,beq,LB,UB,c,ceq,options); 
+    [Xbest,fbest,exitflag,output] = fmincon(fObj,X0,A,b,Aeq,beq,LB,UB,c,ceq,options); 
     tcomp=toc(tstart); % stop the clock
-    sprintf('\n tcomp = %.3f\n',tcomp)
+    fprintf('\n tcomp = %.3f\n',tcomp/60)
     
 end

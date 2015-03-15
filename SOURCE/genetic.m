@@ -1,4 +1,4 @@
-function [Xbest,fbest,stats,nfit,fgen,lgen,lfit] = genetic(fObj,alg,X0,LB,UB,varargin)
+function [Xbest,fbest,gen_best,k_best,stats,nfit,fgen,lgen,lfit] = genetic(fObj,alg,X0,LB,UB,varargin)
 %********************************************************************
 % Funcion which 
 % fitness
@@ -23,10 +23,10 @@ fprintf(['\n[Initialize genetic algorithm \n',...
 %          The option list below is not complete so we suggest you to see "goptions.m"  and  "genetic.m"
 %          in ~/.../XOPT/SourceCode for more detailed information.
 
-N_pop = 30
+N_pop = 5
 P_cross = 0.5
 P_mut = 0.03
-Maxgen = 50
+Maxgen = 2
 elite = 1
 
 fprintf(['\nInitialize bit-number for every configuration variables\n',...
@@ -56,7 +56,7 @@ bits = [ 3,3,3,3,bits_u(:,1)',bits_u(:,2)',bits_l(:,1)',bits_l(:,2)',2,2 ]
 %  ============================================================================================================
 
 fprintf('\nBuild options...\n')
-%% '0' turn on the default values for the genetic algorithm (see goptions)
+%% '0' argument turn on the default values for the genetic algorithm (see goptions.m) !
 options = goptions([1,0.9,0,0,elite,0,0,0,0,0,N_pop,P_cross,P_mut,Maxgen])
 %options=[1,0.9,0,0,elite,0,0,0,0,0,N_pop,P_cross,P_mut,Maxgen];
 
@@ -67,7 +67,7 @@ tstart = tic; % start the clock
 
 switch alg
     case 'sga'
-        [Xbest,fbest,stats,nfit,fgen,lgen,lfit] = sga(fObj,X0,options,LB,UB,bits) % run "sga.m"
+        [Xbest,fbest,gen_best,k_best,stats,nfit,fgen,lgen,lfit] = sga(fObj,X0,options,LB,UB,bits) % run "sga.m"
 
     %case ...
     %otherwise
