@@ -1,4 +1,10 @@
-function xopt % set input-output data to use in combination with other programs
+function [Xbest,fbest] = xopt
+% 1 configure xopt.m
+% 2 configure genetic.m (for EXPERIMENTAL purposes you can set on of 'simplex','sqp','active-set',('interior-point')
+			% then fill in the option list (look at the last section of this configuration file))
+% 1 $matlab -nojvm -nodisplay   (call matlab without java virtual machine and doesn't open the workspace)
+% 2 >> xopt; (call xopt)
+% 2' >> [x,f] = xopt; (call xopt and pull output data (best_configuration and best fitness value) out)
 %%****************************************************************************
 %   XOPT v.1.2.0
 %                              input  >>> xopt
@@ -112,7 +118,7 @@ fprintf('Fluid solver = %s\n',solv)
 %  *********
 opt = 'sga';
 % INPUT METHOD :............'sga'
-% EXPERIMENTAL METHODs :....'sqp' , 'active-set' , 'interior-point'
+% EXPERIMENTAL METHODs :....'simplex','sqp','active-set',('interior-point')
 fprintf('Optimizer algorithm  = %s\n',opt)
 
 %% Distributed computation service
@@ -144,8 +150,8 @@ fprintf(['\nInitialize normalized coordinates of starting airfoil\n',...
 %            selection is reasonable for both upper and lower surfaces
 % =====================================================================
 
-Pu = [ 0.75000 0.06642 ; 0.50000 0.10538 ; 0.25000 0.10903 ; 0.10332 0.07970 ]
-Pl = [ 0.10332 -0.03991 ; 0.25000 -0.03974 ; 0.50000 -0.02713 ; 0.75000 -0.01277 ]
+Pu = [ 0.00932  0.01214 ; 0.21624  0.05810 ; 0.64723  0.04612 ; 0.95248  0.00865 ] # RG15
+Pl = [ 0.94748  0.00101 ; 0.66244 -0.01366 ; 0.30221 -0.02762 ; 0.02670 -0.01436 ]
 
 % ==========================================================================================
 % Link
@@ -166,7 +172,7 @@ fprintf(['\nInitialize airfoil configuration parameters\n',...
          ' Pu, Pl	: normalized coordinate matrix\n',...
          ' dzu,dzl	: normalized trailing edge thickness\n'])
 
-X0 = [ 0.02472,0.02472,19*pi/180,0.0,Pu(:,1)',Pu(:,2)',Pl(:,1)',Pl(:,2)',0.001,-0.001 ]
+X0 = [0.00495,0.00495,0.089,0.0,Pu(:,1)',Pu(:,2)',Pl(:,1)',Pl(:,2)',0.001,-0.001]
 %% Use small dz instead of zero thickness ! 
 
 fprintf(['\nInitialize upper and lower bounds\n',...
@@ -185,15 +191,16 @@ fprintf(['\nInitialize upper and lower bounds\n',...
 %LB_l = [ 0.15,-0.10 ; 0.45,-0.08 ; 0.65,-0.02 ];
 
 %% +- 15% 
-varP = 0.15;
-UB_u = Pu+Pu.*varP;
-LB_u = Pu-Pu.*varP;
+varP_u = 0.20;
+UB_u = Pu+Pu.*varP_u;
+LB_u = Pu-Pu.*varP_u;
 
-UB_l = Pl+abs(Pl.*varP);
-LB_l = Pl-abs(Pl.*varP);
+varP_l = 0.20;
+UB_l = Pl+abs(Pl.*varP_l);
+LB_l = Pl-abs(Pl.*varP_l);
 
-UB = [ 0.030,0.030,25*pi/180,2.0,UB_u(:,1)',UB_u(:,2)',UB_l(:,1)',UB_l(:,2)',0.0015,-0.0005 ]
-LB = [ 0.015,0.015,5*pi/180,-5*pi/180,LB_u(:,1)',LB_u(:,2)',LB_l(:,1)',LB_l(:,2)',0.0005,-0.0015 ]
+UB = [ 0.008,0.008,0.15,0.02,UB_u(:,1)',UB_u(:,2)',UB_l(:,1)',UB_l(:,2)',0.0015,-0.0005 ]
+LB = [ 0.004,0.004,0.0,-0.10,LB_u(:,1)',LB_u(:,2)',LB_l(:,1)',LB_l(:,2)',0.0005,-0.0015 ]
 
 fprintf(['\nInitialize physical parameters of the flux\n',...
          'dry air\n',...  
@@ -233,14 +240,17 @@ N = 80  % Sometimes the starting configuration could be too 'coarse',
 N1 = 0.5
 N2 = 1.0
 
-if c == 1
+%if c == 1
 Re = 0.5E06
-U = Re*ni*c^(-1);
-else    % see XFoil handbook
+%U = Re*ni*c^(-1);
+%else    % see XFoil handbook
+if c ~= 1
 	Rec = Re*c
 	Re = Rec;
-	U = Re*ni*c^(-1);
+	%U = Re*ni*c^(-1);
 end
+
+U = Re*ni*c^(-1);
 
 Ma = U*(gamma*R*T)^(-0.5)
 alpha = 1
@@ -263,44 +273,47 @@ switch opt
         [Xbest,fbest,gen_best,k_best,stats,nfit,fgen,lgen,lfit] = genetic(@run,opt,X0,LB,UB,nu,nl);
         
         
-    case {'active-set','sqp','trust-region-reflective','trust-region-dogleg',...
-            'interior-point','interior-point-convex','levenberg-marquardt','lm-line-search'} % experimental !
+    case {'simplex','sqp','active-set','interior-point'} % experimental !
         
         fprintf('\nlaunch %s configuration...\n',opt)
 	fprintf('\nBuild options...\n')
 
 	options = [];
 	options = optimset('Algorithm',opt,'Display','iter','MaxFunEvals',1500,...
-                    'LargeScale','off','MaxIter',1500,'TolFun',1E-6,'TolCon', 1E-6);
+                    'LargeScale','off','MaxIter',1500,'TolFun',1E-2,'TolCon', 1E-2);
 
-	fconP_flag = 1; % turn on the penalty function approach
+	Cm_max = 0.1;
+
+	%fconP_flag = 1; % turn on the penalty function approach
 	
 	%% linear constraints Aeqx = beq, Ax < b
-	A = []; b = [];
-	Aeq = []; beq = [];
+	%A = []; b = [];
+	%Aeq = []; beq = [];
 
 	%% not linear constraints ceq(x) = 0, c(x) < 0	
-	c = [];
-	ceq = [];
+	%c = [];
+	%ceq = [];
 	%% define a function to evaluate the constraint 
 	
-	mkdir('X');
-	cod1 = 0; cod2 = 0;
+	%mkdir('X');
+	%cod1 = 0; cod2 = 0;
 
-	fid1=fopen('history.dat', 'w');
-		fprintf(fid1,['\n\t','XOPT v.1.2.0\n\n',...
-                	      '\t\tDatabase\n\n',...
-		              'Re %.3e\tMach %.2f\tAlpha %.3f\t%s\n\n',...
-		              'x0\t\t Cl\t\tCd\t\tCm\t\tE\t      fitness\n',...
-		              '--\t     ----------\t    ----------\t    ----------\t    ----------\t    ----------\n'],...
-                               Re,Ma,alpha,mod);
-		fclose(fid1);
+	%fid1=fopen('history.dat', 'w');
+	%	fprintf(fid1,['\n\t','XOPT v.1.2.0\n\n',...
+        %        	      '\t\tDatabase\n\n',...
+	%	              'Re %.3e\tMach %.2f\tAlpha %.3f\t%s\n\n',...
+	%	              'x0\t\t Cl\t\tCd\t\tCm\t\tE\t      fitness\n',...
+	%	              '--\t     ----------\t    ----------\t    ----------\t    ----------\t    ----------\n'],...
+        %                       Re,Ma,alpha,mod);
+	%	fclose(fid1);
 
 	%% Solve
-	fprintf('call %s...\n',opt)
+	%fprintf('call %s...\n',opt)
     	tstart = tic; % start the clock
     	
-    	[Xbest,fbest,exitflag,output] = fmincon(@(x) runGB(x,cod1,cod2),X0,A,b,Aeq,beq,LB,UB,[c ceq],options) 
+    	[Xbest,fbest,exitflag,output] = fmincon(@(x) fobjGb(x,Cm_max),X0,[],[],[],[],[],[],@fconNL,options) 
+	%[Xbest,fbest,exitflag,output] = fminsearch(@(x) fobjGb(x,Cm_max),X0)
+	%[Xbest,fbest,exitflag,output] = fminunc(@(x) fobjGb(x,Cm_max),X0)	
 
     	tcomp=toc(tstart); % stop the clock
     	fprintf('\n tcomp = %.3f\n',tcomp/60)	
@@ -325,7 +338,7 @@ fprintf('\n**END**\n')
 %% Post-processing
 %  ***************
 %  Process data with gnuplot 
-%  ~/XOPT/plot.sh $1 $2 $3 $4 $5 $6 $7
+%  ~/XOPT/plot4.sh 
 %  ...
 
 %% Notes

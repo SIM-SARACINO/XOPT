@@ -296,7 +296,10 @@ markX0="w lp pt ${ptX0} ps ${psX0} lc rgb ${CmarkX0}"
 hK="0.5"
 hKCp="0.5" # ad-hoc height for Cp-chart key box
 
-# key boxe position, height, spacing
+# samplen 
+sampl="1"
+
+# key boxe position, height, spacing, samplen
 keyLD="bottom right font \",${fK}\" height ${hK} spacing ${spK}"
 keyL="bottom right font \",${fK}\" height ${hK} spacing ${spK}"
 keyM="top right vertical maxcols 2 font \",${fK}\" height ${hK} spacing ${spK}"
@@ -481,7 +484,8 @@ elif [ "${narg}" -eq 9 ];then
 	echo "G F"
 	echo ""
 	echo "LOAD"
-	echo "./${foldGen}/${gen}/${k}/${cod}.xy"
+#	echo "./${foldGen}/${gen}/${k}/${cod}.xy"
+	echo "$x"
 	echo "${cod}"
 	echo "OPER"
 	echo "${mod}"
@@ -533,7 +537,7 @@ elif [ "${narg}" -eq 9 ];then
 	#set size ratio -1
 	
 	set multiplot layout 2,2 columnsfirst scale ${wiMul},${hiMul} title '${cod}-${codX0} ,\
-	α ϵ [${alfa0}°,${alfa1}°] , α-Obj = ${alfaObj}° , Re_c = ${2} , Mach = ${3}'
+α ϵ [${alfa0}°,${alfa1}°] , α-Obj = ${alfaObj}° , Re_c = ${2} , Mach = ${3}'
 #Cl-Cd	
 	#set title "Cl-Cd ${cod}" font "${ft}"
 	#set format y "%.2e"
@@ -572,9 +576,9 @@ elif [ "${narg}" -eq 9 ];then
 	set xtics ${xtL} ${xtMir} font "${fxt}"
 	set ytics ${ytL} ${ytMir} font "${fyt}"
 	pl '${cod}.pol' u ${xflagL}:${yflagL} ${lL} t '${cod}',\
-	'' u (column(1) == ${alfaObj} ? column(1) : 1/0):(column(2)) ${markX} notitle ,\
+	'' u (${xflagL}) : ((column(${xflagL}) == ${alfaObj}) ? column(${yflagL}) : 1/0) ${markX} notitle ,\
 	'${codX0}.pol' u ${xflagL}:${yflagL} ${l0L} t '${codX0}' ,\
-	'' u (column(1) == ${alfaObj} ? column(1) : 1/0):(column(2)) ${markX0} notitle
+	'' u (${xflagL}) : ((column(${xflagL}) == ${alfaObj}) ? column(${yflagL}) : 1/0) ${markX0} notitle
 #Cp-x/c	
 	#set title "Cp-ψ ${cod} alpha ${alfaObj}°" font "${ft}"
 	set xlabel '${xlbP}' font "${fxlb}" offset ${xlbOf}
@@ -585,7 +589,7 @@ elif [ "${narg}" -eq 9 ];then
 	set xtics ${xtP} ${xtMir} font "${fxt}"
 	set ytics ${ytP} ${ytMir} font "${fyt}"
 	set label "α-Obj = ${alfaObj}°" at $xlbAlfa,$ylbAlfa font ",${falfaLb}" 
-	pl './${foldGen}/${gen}/${k}/${cod}.cp' every ::1::${pan}/2 ${lP_u} t 'up-${cod}' ,\
+	pl '$xCp' every ::1::${pan}/2 ${lP_u} t 'up-${cod}' ,\
 	'' every ::${pan}/2::${pan} ${lP_l} t 'lo-${cod}' ,\
 	'${codX0}.cp' every ::1::${pan}/2 ${l0P_u} t 'up-${codX0}' ,\
 	'' every ::${pan}/2::${pan} ${l0P_l} t 'lo-${codX0}' 

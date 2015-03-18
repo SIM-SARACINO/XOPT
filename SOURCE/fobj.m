@@ -20,8 +20,11 @@ Fp = [];
 
 p(1) = 0.05;    % penalty coeff. for maximum thickness
 p(2) = 0.1;     % penalty coeff. for maximum Cm
+p(3) = 1;	% penalty coeff. for maximum Cd
 
-Cm_max = -0.7;
+Cm_max = -0.15;
+Cd_max = 0.01;
+% Cl_max  ?
 
 Fp(1) = sum(isnan(pol));
 
@@ -34,7 +37,7 @@ else
 	
 	if fit < 0 % check for NEGATIVE FIT VALUEs
 
-		fit = 1;
+		fit = 0.5;
 	
 	else
 		%% Define "minimum thickness fuction"
@@ -50,6 +53,7 @@ else
 		end
 		
 		Fp(2) = (pol(5) < Cm_max)*(Cm_max - pol(5))^2;
+		Fp(3) = (pol(3) > Cd_max)*(Cd_max - pol(3))^2;
 	
 		fit = fit + p*Fp';
 

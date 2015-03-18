@@ -23,7 +23,7 @@ function [xy,xyu,xyl,wu,wl,xyc,xytu,xytl,file] = cst2d(X,tag,N,nu,nl,N1,N2,varar
 
 %% varargin --> not defined
 
-if nargin < 5
+if nargin < 5 %6
     N1 = 0.5;
     N2 = 1.0;
 end

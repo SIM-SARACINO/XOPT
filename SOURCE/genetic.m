@@ -23,10 +23,10 @@ fprintf(['\n[Initialize genetic algorithm \n',...
 %          The option list below is not complete so we suggest you to see "goptions.m"  and  "genetic.m"
 %          in ~/.../XOPT/SourceCode for more detailed information.
 
-N_pop = 5
+N_pop = 30
 P_cross = 0.5
 P_mut = 0.03
-Maxgen = 2
+Maxgen = 180
 elite = 1
 
 fprintf(['\nInitialize bit-number for every configuration variables\n',...

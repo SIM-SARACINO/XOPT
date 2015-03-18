@@ -193,6 +193,7 @@ mkdir('GEN');
 % fit, BSA history
 BSA_out = zeros(max_gen,2); BSA_out(1,:) = [0 0];
 fit_out = zeros(max_gen*size(pop_size,1),2);
+Xbest_all = zeros(max_gen,length(vlb));
 
 for gen = 1:max_gen,
     old_gen = new_gen;
@@ -212,7 +213,7 @@ for gen = 1:max_gen,
         fit(k) = fObj(x,gen,k);      
         nfit = nfit + 1;
         pause(1)
-        system('./system.sh mv');
+        system('./system.sh mv && ./system.sh c');
     end
     
     ix0 = 1+pop_size*(gen-1);
@@ -250,6 +251,8 @@ for gen = 1:max_gen,
         fopt = min_fit;
         xopt = min_x;
     end
+
+	Xbest_all(gen,:) = min_x; %! experimental
 
     % Calculate gen statistics
     stats(gen,:) = [gen-1,min(fit),mean(fit),max(fit)];
@@ -321,6 +324,7 @@ for gen = 1:max_gen,
                     
                     save('FIT.out','fit_out','-ascii')
                     save('STATs.out','stats','-ascii')
+		    save('Xbest.out','Xbest_all','-ascii')
                     system('./system.sh mvG');
                     
                     return
@@ -346,6 +350,7 @@ for gen = 1:max_gen,
                     
                     save('FIT.out','fit_out','-ascii')
                     save('STATs.out','stats','-ascii')
+		    save('Xbest.out','Xbest_all','-ascii')
                     system('./system.sh mvG');
                     
                     return
@@ -380,6 +385,7 @@ for gen = 1:max_gen,
                 
                 save('FIT.out','fit_out','-ascii')
                 save('STATs.out','stats','-ascii')
+		save('Xbest.out','Xbest_all','-ascii')
                 system('./system.sh mvG');
                 
                 return
@@ -412,6 +418,7 @@ for gen = 1:max_gen,
                 save('BSA.out','BSA_out','-ascii')
                 save('FIT.out','fit_out','-ascii')
                 save('STATs.out','stats','-ascii')
+	   	save('Xbest.out','Xbest_all','-ascii')
                 system('./system.sh mvG');
                    
                 return
@@ -455,6 +462,7 @@ k_best = ind_val - gen_best*pop_size;
 
 save('FIT.out','fit_out','-ascii') % print fit history
 save('STATs.out','stats','-ascii') % print stats history
+save('Xbest.out','Xbest_all','-ascii') % print all best configurations 
 
 if PRINTING >= 1,
    fprintf(['\nWARNING\n',...

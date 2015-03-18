@@ -36,7 +36,7 @@ fi
 
 case $1 in
 "move" | "mv")
-	mv ./${cod}* ${data}/${gen}/${k}/
+	mv ./${cod}* ${data}/${gen}/${k}/	
 	;;
 "mvGen" | "mvG")
 	mv ${fileGen} ${data}/${gen}/ #2>/dev/null
@@ -53,7 +53,7 @@ case $1 in
 	done
 	;;
 "distclean" | "dc")
-	rm -f -r ${data} *.out log *.pol *.cp
+	rm -f -r ${data} *.out log *.pol *.cp *.log *.gp
 #	rm -f -i -r ${data}	
 	;;
 "zip" | "z")
